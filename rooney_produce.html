@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rooney Produce</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #2d6a2d;
+    --green-light: #4a9e4a;
+    --cream: #f5f0e8;
+    --cream-dark: #e8e0d0;
+    --ink: #1a1a14;
+    --muted: #7a7a6a;
+    --red: #c0392b;
+    --accent: #e8b84b;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--green);
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    color: var(--cream);
+    font-size: 22px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .logo span {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .cart-btn {
+    position: relative;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    color: white;
+    padding: 8px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.2s;
+  }
+  .cart-btn:active { background: rgba(255,255,255,0.22); }
+  .cart-icon { font-size: 16px; }
+  .cart-count {
+    background: var(--accent);
+    color: var(--ink);
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 500;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+
+  /* SEARCH */
+  .search-wrap {
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: rgba(255,255,255,0.13);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 9px 14px 9px 38px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    outline: none;
+    transition: background 0.2s;
+  }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.5); }
+  .search-wrap input:focus { background: rgba(255,255,255,0.2); }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  /* CATEGORY PILLS */
+  .cat-scroll {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--cream-dark);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .cat-scroll::-webkit-scrollbar { display: none; }
+  .cat-pill {
+    flex-shrink: 0;
+    background: white;
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+  .cat-pill.active, .cat-pill:active {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+  }
+
+  /* ITEMS LIST */
+  .items-list {
+    padding: 16px 16px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 4px 2px;
+  }
+
+  .item-card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: box-shadow 0.18s, transform 0.12s;
+    border: 1.5px solid transparent;
+  }
+  .item-card.has-order {
+    border-color: var(--green-light);
+    background: #f0f8f0;
+  }
+  .item-card:active { transform: scale(0.98); }
+
+  .item-emoji {
+    font-size: 30px;
+    width: 42px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .item-info { flex: 1; min-width: 0; }
+  .item-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  /* QUANTITY CONTROL */
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--cream);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid var(--cream-dark);
+    flex-shrink: 0;
+  }
+  .qty-btn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    color: var(--green);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .qty-btn:active { background: var(--cream-dark); }
+  .qty-num {
+    min-width: 32px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* ON HAND INPUT */
+  .onhand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .onhand-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .onhand-input {
+    width: 52px;
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--cream);
+    outline: none;
+    text-align: center;
+  }
+  .onhand-input:focus { border-color: var(--green-light); }
+
+  /* FOOTER ORDER SUMMARY */
+  .order-footer {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    border-top: 1.5px solid var(--cream-dark);
+    padding: 14px 20px 24px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.10);
+    z-index: 200;
+    display: none;
+  }
+  .order-footer.visible { display: block; }
+
+  .footer-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .footer-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .footer-items {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .submit-btn:active { background: var(--green-light); }
+
+  /* ORDER SHEET MODAL */
+  .sheet-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 300;
+    display: none;
+    align-items: flex-end;
+  }
+  .sheet-overlay.open { display: flex; }
+
+  .sheet {
+    background: white;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 20px 20px 40px;
+    animation: slideUp 0.28s cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--cream-dark);
+    border-radius: 999px;
+    margin: 0 auto 18px;
+  }
+
+  .sheet-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .sheet-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 18px;
+    letter-spacing: 0.06em;
+  }
+
+  .sheet-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--cream-dark);
+    font-size: 14px;
+  }
+  .sheet-item:last-child { border-bottom: none; }
+  .sheet-item-name { font-weight: 500; }
+  .sheet-item-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .sheet-item-qty {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--green);
+    font-weight: 500;
+    background: #f0f8f0;
+    border-radius: 8px;
+    padding: 4px 10px;
+  }
+
+  .sheet-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .btn-secondary {
+    flex: 1;
+    border: 1.5px solid var(--cream-dark);
+    background: white;
+    color: var(--ink);
+    border-radius: 12px;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-copy {
+    flex: 2;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-clear {
+    width: 100%;
+    margin-top: 10px;
+    background: transparent;
+    border: 1.5px solid #e0c0bc;
+    color: var(--red);
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .btn-clear:active { background: #fdf0ee; }
+
+  /* CONFIRM MODAL */
+  .confirm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: white;
+    border-radius: 18px;
+    padding: 28px 24px 22px;
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+    animation: popIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.88); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .confirm-icon { font-size: 34px; margin-bottom: 10px; }
+  .confirm-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .confirm-msg {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 22px;
+    line-height: 1.5;
+  }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-cancel {
+    flex: 1;
+    border: 1.5px solid var(--cream-dark);
+    background: white;
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .confirm-ok {
+    flex: 1;
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">
+      Rooney
+      <span>Produce Order</span>
+    </div>
+    <button class="cart-btn" onclick="openSheet()">
+      <span class="cart-icon">🛒</span>
+      <span id="cartLabel">Order</span>
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search produce…" oninput="filterItems()">
+  </div>
+</header>
+
+<div class="cat-scroll" id="catScroll"></div>
+
+<div class="items-list" id="itemsList"></div>
+
+<div class="order-footer" id="orderFooter">
+  <div class="footer-summary">
+    <div>
+      <div class="footer-title">Ready to order</div>
+      <div class="footer-items" id="footerItems"></div>
+    </div>
+  </div>
+  <button class="submit-btn" onclick="openSheet()">Review Order →</button>
+</div>
+
+<!-- SHEET MODAL -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheetOutside(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Order Summary</div>
+    <div class="sheet-date" id="sheetDate"></div>
+    <div id="sheetItems"></div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" onclick="closeSheet()">← Back</button>
+      <button class="btn-copy" id="copyBtn" onclick="copyOrder()">📋 Copy Order</button>
+    </div>
+    <button class="btn-clear" onclick="confirmClear()">🗑 Clear Order</button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑</div>
+    <div class="confirm-title">Clear entire order?</div>
+    <div class="confirm-msg">All quantities and on-hand values will be reset.</div>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-ok" onclick="clearCart()">Yes, clear it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRODUCE = [
+  { name: "Romaine", pack: "Case", emoji: "🥬", cat: "Greens" },
+  { name: "Iceberg Lettuce", pack: "Case", emoji: "🥗", cat: "Greens" },
+  { name: "Spinach", pack: "Case", emoji: "🌿", cat: "Greens" },
+  { name: "Spring Mix", pack: "Case", emoji: "🌱", cat: "Greens" },
+  { name: "Arugula", pack: "Case", emoji: "🍃", cat: "Greens" },
+  { name: "Basil", pack: "Bag", emoji: "🌿", cat: "Herbs" },
+  { name: "Parsley", pack: "Batch", emoji: "🌿", cat: "Herbs" },
+  { name: "Sage", pack: "Batch", emoji: "🌿", cat: "Herbs" },
+  { name: "Eggplant", pack: "Case", emoji: "🍆", cat: "Vegetables", halfStep: true },
+  { name: "Cherry Tomatoes", pack: "Case", emoji: "🍒", cat: "Vegetables" },
+  { name: "Garlic", pack: "Container", emoji: "🧄", cat: "Vegetables" },
+  { name: "Avocado", pack: "Case", emoji: "🥑", cat: "Vegetables" },
+  { name: "Asparagus", pack: "Unit", emoji: "🌾", cat: "Vegetables" },
+  { name: "Celery", pack: "Head", emoji: "🥬", cat: "Vegetables" },
+  { name: "Carrots", pack: "Bag", emoji: "🥕", cat: "Vegetables" },
+  { name: "Potatoes", pack: "Bag", emoji: "🥔", cat: "Vegetables" },
+  { name: "Broccoli Rabe", pack: "Case", emoji: "🥦", cat: "Vegetables" },
+  { name: "Mushroom", pack: "Case", emoji: "🍄", cat: "Vegetables" },
+  { name: "Portabella Mush", pack: "Case", emoji: "🍄", cat: "Vegetables" },
+  { name: "Scallions", pack: "Bag", emoji: "🌱", cat: "Vegetables" },
+  { name: "Spanish Onion", pack: "Unit", emoji: "🧅", cat: "Vegetables" },
+  { name: "Red Onion", pack: "Unit", emoji: "🧅", cat: "Vegetables" },
+  { name: "Cucumber", pack: "Unit", emoji: "🥒", cat: "Vegetables" },
+  { name: "Red Peppers", pack: "Case", emoji: "🫑", cat: "Vegetables" },
+  { name: "Green Peppers", pack: "Case", emoji: "🫑", cat: "Vegetables" },
+  { name: "Tomatoes", pack: "Case", emoji: "🍅", cat: "Vegetables" },
+  { name: "Lemon", pack: "Case", emoji: "🍋", cat: "Fruit" },
+];
+
+const orders = {};   // name -> { qty, onHand }
+let activeCategory = "All";
+let searchQuery = "";
+
+function initOrders() {
+  PRODUCE.forEach(p => {
+    orders[p.name] = { qty: 0, onHand: "" };
+  });
+}
+
+function getCategories() {
+  const cats = ["All", ...new Set(PRODUCE.map(p => p.cat))];
+  return cats;
+}
+
+function renderCats() {
+  const wrap = document.getElementById("catScroll");
+  wrap.innerHTML = getCategories().map(c =>
+    `<div class="cat-pill${c === activeCategory ? " active" : ""}" onclick="setCategory('${c}')">${c}</div>`
+  ).join("");
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  renderCats();
+  renderItems();
+}
+
+function filterItems() {
+  searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+  renderItems();
+}
+
+function getVisible() {
+  return PRODUCE.filter(p => {
+    const matchCat = activeCategory === "All" || p.cat === activeCategory;
+    const matchSearch = p.name.toLowerCase().includes(searchQuery);
+    return matchCat && matchSearch;
+  });
+}
+
+function renderItems() {
+  const list = document.getElementById("itemsList");
+  const visible = getVisible();
+
+  if (!visible.length) {
+    list.innerHTML = `<div class="no-results">No produce found</div>`;
+    return;
+  }
+
+  // Group by category if "All" is selected
+  let html = "";
+  if (activeCategory === "All" && !searchQuery) {
+    const byCat = {};
+    visible.forEach(p => {
+      if (!byCat[p.cat]) byCat[p.cat] = [];
+      byCat[p.cat].push(p);
+    });
+    Object.entries(byCat).forEach(([cat, items]) => {
+      html += `<div class="section-label">${cat}</div>`;
+      items.forEach(p => html += itemCard(p));
+    });
+  } else {
+    visible.forEach(p => html += itemCard(p));
+  }
+  list.innerHTML = html;
+}
+
+function fmtQty(qty, halfStep) {
+  if (!halfStep) return qty;
+  if (!qty) return "0";
+  const w = Math.floor(qty / 2), h = qty % 2;
+  if (!w) return "½";
+  return h ? `${w}½` : `${w}`;
+}
+
+function itemCard(p) {
+  const o = orders[p.name];
+  const hasOrder = o.qty > 0;
+  const display = fmtQty(o.qty, p.halfStep);
+  return `
+    <div class="item-card${hasOrder ? " has-order" : ""}" id="card-${safeId(p.name)}">
+      <div class="item-emoji">${p.emoji}</div>
+      <div class="item-info">
+        <div class="item-name">${p.name}</div>
+        <div class="item-meta">${p.pack.toUpperCase()}${p.halfStep ? " · ½ INCREMENTS" : ""}</div>
+        <div class="onhand-wrap">
+          <span class="onhand-label">ON HAND:</span>
+          <input class="onhand-input" type="number" min="0" placeholder="—"
+            value="${o.onHand}"
+            onchange="setOnHand('${p.name}', this.value)"
+            onclick="event.stopPropagation()">
+        </div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty('${p.name}', -1)">−</button>
+        <div class="qty-num" id="qty-${safeId(p.name)}">${display}</div>
+        <button class="qty-btn" onclick="changeQty('${p.name}', 1)">+</button>
+      </div>
+    </div>`;
+}
+
+function safeId(name) {
+  return name.replace(/[^a-zA-Z0-9]/g, "_");
+}
+
+function changeQty(name, delta) {
+  const p = PRODUCE.find(x => x.name === name);
+  const o = orders[name];
+  o.qty = Math.max(0, o.qty + delta * (p && p.halfStep ? 1 : 1));
+  const display = fmtQty(o.qty, p && p.halfStep);
+  const qtyEl = document.getElementById(`qty-${safeId(name)}`);
+  if (qtyEl) qtyEl.textContent = display;
+  const card = document.getElementById(`card-${safeId(name)}`);
+  if (card) card.classList.toggle("has-order", o.qty > 0);
+  updateFooter();
+}
+
+function setOnHand(name, val) {
+  orders[name].onHand = val;
+}
+
+function getOrderedItems() {
+  return PRODUCE.filter(p => orders[p.name].qty > 0);
+}
+
+function updateFooter() {
+  const items = getOrderedItems();
+  const footer = document.getElementById("orderFooter");
+  const countEl = document.getElementById("cartCount");
+  const footerItems = document.getElementById("footerItems");
+  countEl.textContent = items.length;
+  if (items.length > 0) {
+    footer.classList.add("visible");
+    footerItems.textContent = `${items.length} item${items.length !== 1 ? "s" : ""} selected`;
+  } else {
+    footer.classList.remove("visible");
+  }
+}
+
+function openSheet() {
+  const items = getOrderedItems();
+  if (!items.length) { alert("No items in your order yet."); return; }
+
+  const date = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  document.getElementById("sheetDate").textContent = date.toUpperCase();
+
+  document.getElementById("sheetItems").innerHTML = items.map(p => {
+    const o = orders[p.name];
+    return `
+      <div class="sheet-item">
+        <div>
+          <div class="sheet-item-name">${p.name}</div>
+          <div class="sheet-item-detail">${p.pack.toUpperCase()}${o.onHand ? ` · ${o.onHand} on hand` : ""}</div>
+        </div>
+        <div class="sheet-item-qty">× ${fmtQty(o.qty, p.halfStep)}</div>
+      </div>`;
+  }).join("");
+
+  document.getElementById("sheetOverlay").classList.add("open");
+}
+
+function closeSheet() {
+  document.getElementById("sheetOverlay").classList.remove("open");
+}
+
+function copyOrder() {
+  const items = getOrderedItems();
+  let text = "";
+  items.forEach(p => {
+    const o = orders[p.name];
+    text += `${fmtQty(o.qty, p.halfStep)} - ${p.name}\n`;
+  });
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "✅ Copied!";
+    setTimeout(() => btn.textContent = "📋 Copy Order", 2000);
+  }).catch(() => { prompt("Copy your order:", text); });
+}
+
+function closeSheetOutside(e) {
+  if (e.target === document.getElementById("sheetOverlay")) closeSheet();
+}
+
+function confirmClear() {
+  document.getElementById("confirmOverlay").classList.add("open");
+}
+
+function closeConfirm() {
+  document.getElementById("confirmOverlay").classList.remove("open");
+}
+
+function clearCart() {
+  PRODUCE.forEach(p => { orders[p.name] = { qty: 0, onHand: "" }; });
+  closeConfirm();
+  closeSheet();
+  renderItems();
+  updateFooter();
+}
+
+// INIT
+initOrders();
+renderCats();
+renderItems();
+
+document.addEventListener('touchmove', function(e) {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+let lastTap = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTap < 300) e.preventDefault();
+  lastTap = now;
+}, { passive: false });
+</script>
+</body>
+</html>

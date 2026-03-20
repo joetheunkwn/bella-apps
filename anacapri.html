@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Anacapri</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1a3a5c;
+    --navy-light: #2a5080;
+    --cream: #f7f4ed;
+    --cream-dark: #ece7da;
+    --white: #ffffff;
+    --ink: #1a1a14;
+    --muted: #8a8a7a;
+    --danger: #c0392b;
+    --red-italy: #ce2b37;
+    --green-italy: #009246;
+    --accent: #ce2b37;
+    --active-bg: #f0f5ff;
+    --active-border: #1a3a5c;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--white);
+    border-bottom: 3px solid transparent;
+    border-image: linear-gradient(to right, var(--green-italy) 33.3%, white 33.3%, white 66.6%, var(--red-italy) 66.6%) 1;
+    padding: 18px 20px 14px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .logo { line-height: 1.1; }
+  .logo-sub { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
+  .logo-name { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--navy); letter-spacing: 0.01em; }
+  .logo-tag { font-family: 'Playfair Display', serif; font-style: italic; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .cart-btn { background: var(--navy); border: none; border-radius: 12px; color: white; padding: 8px 14px; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background 0.2s; }
+  .cart-btn:active { background: var(--navy-light); }
+  .cart-count { background: var(--red-italy); color: white; border-radius: 999px; font-size: 10px; font-weight: 500; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+  .search-wrap { position: relative; }
+  .search-wrap input { width: 100%; background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 10px; padding: 9px 14px 9px 38px; color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 16px; outline: none; transition: border-color 0.2s; }
+  .search-wrap input:focus { border-color: var(--navy); background: white; }
+  .search-wrap input::placeholder { color: #bbb; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
+
+  /* CATEGORY PILLS */
+  .cat-scroll { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; background: var(--white); border-bottom: 1px solid var(--cream-dark); }
+  .cat-scroll::-webkit-scrollbar { display: none; }
+  .cat-pill { flex-shrink: 0; background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 999px; padding: 5px 13px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.04em; }
+  .cat-pill.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  /* LIST */
+  .items-list { padding: 14px 16px 180px; display: flex; flex-direction: column; gap: 8px; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); padding: 10px 4px 2px; }
+
+  /* ITEM CARD */
+  .item-card { background: var(--white); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1.5px solid transparent; transition: border-color 0.15s, background 0.15s; }
+  .item-card.has-order { border-color: var(--active-border); background: var(--active-bg); }
+  .item-emoji { font-size: 24px; width: 34px; text-align: center; flex-shrink: 0; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .item-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 1px; letter-spacing: 0.04em; }
+
+  /* QTY STEPPER */
+  .qty-control { display: flex; align-items: center; background: var(--cream); border-radius: 10px; overflow: hidden; border: 1.5px solid var(--cream-dark); flex-shrink: 0; }
+  .qty-btn { width: 34px; height: 34px; border: none; background: transparent; font-size: 20px; color: var(--navy); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.12s; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .qty-btn:active { background: var(--cream-dark); }
+  .qty-num { min-width: 30px; text-align: center; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; }
+
+  /* CUSTOM SECTION */
+  .custom-section { background: var(--white); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1.5px solid var(--cream-dark); overflow: hidden; }
+  .custom-section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid var(--cream-dark); }
+  .custom-section-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .add-custom-btn { display: flex; align-items: center; gap: 5px; background: var(--navy); color: white; border: none; border-radius: 8px; padding: 5px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .add-custom-btn:active { background: var(--navy-light); }
+  .custom-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px 9px 14px; border-bottom: 1px solid var(--cream-dark); }
+  .custom-row:last-child { border-bottom: none; }
+  .custom-row.filled { background: var(--active-bg); }
+  .custom-name-input { flex: 1; border: none; padding: 5px 0; font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--ink); background: transparent; outline: none; min-width: 0; border-bottom: 1.5px solid transparent; transition: border-color 0.15s; }
+  .custom-name-input:focus { border-bottom-color: var(--navy); }
+  .custom-name-input::placeholder { color: #bbb; }
+  .custom-delete-btn { width: 30px; height: 30px; border: none; background: transparent; color: #ccc; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 6px; -webkit-tap-highlight-color: transparent; transition: color 0.15s; }
+  .custom-delete-btn:active { color: var(--danger); }
+  .custom-empty { padding: 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: #ccc; letter-spacing: 0.06em; text-align: center; }
+
+  /* FOOTER */
+  .order-footer { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1.5px solid var(--cream-dark); padding: 14px 20px 24px; box-shadow: 0 -4px 24px rgba(0,0,0,0.10); z-index: 200; display: none; }
+  .order-footer.visible { display: block; }
+  .footer-title { font-family: 'Playfair Display', serif; font-size: 16px; margin-bottom: 2px; color: var(--navy); }
+  .footer-items { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .submit-btn { width: 100%; background: var(--navy); color: white; border: none; border-radius: 12px; padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .submit-btn:active { background: var(--navy-light); }
+
+  /* SHEET */
+  .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300; display: none; align-items: flex-end; }
+  .sheet-overlay.open { display: flex; }
+  .sheet { background: white; border-radius: 20px 20px 0 0; width: 100%; max-height: 82vh; overflow-y: auto; padding: 20px 20px 40px; animation: slideUp 0.28s cubic-bezier(0.22,1,0.36,1); }
+  @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-handle { width: 40px; height: 4px; background: var(--cream-dark); border-radius: 999px; margin: 0 auto 18px; }
+  .sheet-title { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 4px; color: var(--navy); }
+  .sheet-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 18px; letter-spacing: 0.06em; }
+  .sheet-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--cream-dark); }
+  .sheet-item:last-child { border-bottom: none; }
+  .sheet-item-name { font-size: 14px; font-weight: 500; }
+  .sheet-item-badge { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .sheet-item-qty { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--navy); font-weight: 500; background: var(--active-bg); border-radius: 8px; padding: 4px 10px; }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-secondary { flex: 1; border: 1.5px solid var(--cream-dark); background: white; color: var(--ink); border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
+  .btn-copy { flex: 2; background: var(--navy); color: white; border: none; border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .btn-clear { width: 100%; margin-top: 10px; background: transparent; border: 1.5px solid #e0c0bc; color: var(--danger); border-radius: 12px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
+  .btn-clear:active { background: #fdf0ee; }
+
+  /* CONFIRM */
+  .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box { background: white; border-radius: 18px; padding: 28px 24px 22px; width: 100%; max-width: 320px; text-align: center; animation: popIn 0.22s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes popIn { from { transform: scale(0.88); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .confirm-icon { font-size: 34px; margin-bottom: 10px; }
+  .confirm-title { font-family: 'Playfair Display', serif; font-size: 19px; margin-bottom: 8px; color: var(--navy); }
+  .confirm-msg { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-cancel { flex: 1; border: 1.5px solid var(--cream-dark); background: white; color: var(--ink); border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
+  .confirm-ok { flex: 1; background: var(--danger); color: white; border: none; border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .no-results { text-align: center; padding: 40px 20px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-sub">Daily Order</div>
+      <div class="logo-name">Anacapri</div>
+      <div class="logo-tag">Ristorante Italiano</div>
+    </div>
+    <button class="cart-btn" onclick="openSheet()">
+      <span>🛒</span><span>Order</span>
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search items…" oninput="filterItems()">
+  </div>
+</header>
+
+<div class="cat-scroll" id="catScroll"></div>
+<div class="items-list" id="itemsList"></div>
+
+<div class="order-footer" id="orderFooter">
+  <div class="footer-title">Ready to order</div>
+  <div class="footer-items" id="footerItems"></div>
+  <button class="submit-btn" onclick="openSheet()">Review Order →</button>
+</div>
+
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheetOutside(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Order Summary</div>
+    <div class="sheet-date" id="sheetDate"></div>
+    <div id="sheetItems"></div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" onclick="closeSheet()">← Back</button>
+      <button class="btn-copy" id="copyBtn" onclick="copyOrder()">📋 Copy Order</button>
+    </div>
+    <button class="btn-clear" onclick="confirmClear()">🗑 Clear Order</button>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑</div>
+    <div class="confirm-title">Clear entire order?</div>
+    <div class="confirm-msg">All quantities and custom items will be reset.</div>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-ok" onclick="clearCart()">Yes, clear it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ITEMS = [
+  // Pasta
+  { name: "Penne Pasta",              emoji: "🍝", cat: "Pasta" },
+  { name: "Linguine",                 emoji: "🍝", cat: "Pasta" },
+  { name: "Ziti",                     emoji: "🍝", cat: "Pasta" },
+  { name: "Spaghetti",                emoji: "🍝", cat: "Pasta" },
+  { name: "Gluten Free Penne",        emoji: "🍝", cat: "Pasta" },
+  { name: "Angel Hair",               emoji: "🍝", cat: "Pasta" },
+  { name: "Rigatoni",                 emoji: "🍝", cat: "Pasta" },
+  { name: "Fettuccine Egg Nest",      emoji: "🍝", cat: "Pasta" },
+  { name: "Ditalini Pasta",           emoji: "🍝", cat: "Pasta" },
+  { name: "Lasagna Sheets",           emoji: "🍝", cat: "Pasta" },
+  { name: "Cheese Tortellini",        emoji: "🍝", cat: "Pasta" },
+  { name: "Elbow Pasta",              emoji: "🍝", cat: "Pasta" },
+  { name: "Cheese Ravioli",           emoji: "🥟", cat: "Pasta" },
+  { name: "Lobster Ravioli",          emoji: "🥟", cat: "Pasta" },
+  { name: "Cavatelli",                emoji: "🍝", cat: "Pasta" },
+  { name: "Stuffed Shells",           emoji: "🐚", cat: "Pasta" },
+  // Pantry
+  { name: "College in Chicken Broth", emoji: "🥫", cat: "Pantry" },
+  { name: "10% Oil",                  emoji: "🫙", cat: "Pantry" },
+  { name: "Creamy Shortening",        emoji: "🫙", cat: "Pantry" },
+  { name: "Extra-Virgin Olive Oil",   emoji: "🫒", cat: "Pantry" },
+  { name: "Red Vinegar Regina",       emoji: "🍶", cat: "Pantry" },
+  { name: "Green Flour",              emoji: "🌾", cat: "Pantry" },
+  { name: "Semolina Flour",           emoji: "🌾", cat: "Pantry" },
+  { name: "Gluten Free Flour",        emoji: "🌾", cat: "Pantry" },
+  { name: "Panko Flour",              emoji: "🌾", cat: "Pantry" },
+  { name: "Mulino Divino",            emoji: "🌾", cat: "Pantry" },
+  { name: "Filetto Pomodoro",         emoji: "🍅", cat: "Pantry" },
+  { name: "Tomato Magic",             emoji: "🍅", cat: "Pantry" },
+  { name: "Tuna",                     emoji: "🐟", cat: "Pantry" },
+  { name: "Salt",                     emoji: "🧂", cat: "Pantry" },
+  { name: "Sugar",                    emoji: "🍬", cat: "Pantry" },
+  { name: "Oyster Crackers",          emoji: "🫙", cat: "Pantry" },
+  { name: "Cannellini Beans 19oz",    emoji: "🫘", cat: "Pantry" },
+  { name: "Balsamic Glaze",           emoji: "🍶", cat: "Pantry" },
+  { name: "Sundried Tomato",          emoji: "🍅", cat: "Pantry" },
+  { name: "Can Anchovies",            emoji: "🐟", cat: "Pantry" },
+  // Sauces & Dressings
+  { name: "Baby Rays BBQ",            emoji: "🥫", cat: "Sauces & Dressings" },
+  { name: "Frank Buffalo",            emoji: "🌶️", cat: "Sauces & Dressings" },
+  { name: "Cluckster Atomic Mild BBQ",emoji: "🌶️", cat: "Sauces & Dressings" },
+  { name: "Blue Cheese Ken's",        emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Caesar Dressing",          emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Balsamic Dressing",        emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Ranch Dressing",           emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Sesame Ginger",            emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Italian Zesty Gallon",     emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Creamy Italian Gallon",    emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Russian Dressing Ken's",   emoji: "🥗", cat: "Sauces & Dressings" },
+  { name: "Mike Honey Deep Cup",      emoji: "🍯", cat: "Sauces & Dressings" },
+  { name: "No Nut Pesto",             emoji: "🌿", cat: "Sauces & Dressings" },
+  // Dairy & Cheese
+  { name: "Heavy Cream",              emoji: "🥛", cat: "Dairy & Cheese" },
+  { name: "Milk Pasteurized",         emoji: "🥛", cat: "Dairy & Cheese" },
+  { name: "Unsalted Butter",          emoji: "🧈", cat: "Dairy & Cheese" },
+  { name: "Fresh Mozzarella Logs",    emoji: "🧀", cat: "Dairy & Cheese" },
+  { name: "Grande Whole Milk Shredded", emoji: "🧀", cat: "Dairy & Cheese" },
+  { name: "Grande Block",             emoji: "🧀", cat: "Dairy & Cheese" },
+  { name: "Grated Parm",              emoji: "🧀", cat: "Dairy & Cheese" },
+  { name: "Garlic Butter Tubs",       emoji: "🧈", cat: "Dairy & Cheese" },
+  { name: "Sour Cream",               emoji: "🥛", cat: "Dairy & Cheese" },
+  { name: "Kraft Whiz",               emoji: "🧀", cat: "Dairy & Cheese" },
+  // Protein & Seafood
+  { name: "Chicken Tenders",          emoji: "🍗", cat: "Protein & Seafood" },
+  { name: "Chicken Cutlet",           emoji: "🍗", cat: "Protein & Seafood" },
+  { name: "Case Meatball",            emoji: "🍖", cat: "Protein & Seafood" },
+  { name: "16/20 Shrimp",             emoji: "🍤", cat: "Protein & Seafood" },
+  { name: "Case Salmon",              emoji: "🐟", cat: "Protein & Seafood" },
+  { name: "Bread Flounder Fillet",    emoji: "🐟", cat: "Protein & Seafood" },
+  { name: "Clams Juice Panepesca",    emoji: "🦪", cat: "Protein & Seafood" },
+  { name: "Mussels Panepesca",        emoji: "🦪", cat: "Protein & Seafood" },
+  { name: "Calamari TNT",             emoji: "🦑", cat: "Protein & Seafood" },
+  { name: "Prosciutto",               emoji: "🍖", cat: "Protein & Seafood" },
+  // Frozen & Appetizers
+  { name: "Gluten Free Crust",        emoji: "🍕", cat: "Frozen & Apps" },
+  { name: "Cauliflower Crust",        emoji: "🍕", cat: "Frozen & Apps" },
+  { name: "Rice Ball",                emoji: "🍙", cat: "Frozen & Apps" },
+  { name: "Jalapeño Poppers",         emoji: "🌶️", cat: "Frozen & Apps" },
+  { name: "Broccoli Florets",         emoji: "🥦", cat: "Frozen & Apps" },
+  { name: "Onion Rings",              emoji: "🧅", cat: "Frozen & Apps" },
+  { name: "Breaded Mushroom",         emoji: "🍄", cat: "Frozen & Apps" },
+  { name: "Mozzarella Sticks",        emoji: "🧀", cat: "Frozen & Apps" },
+  { name: "Frozen Sweet Peas",        emoji: "🫛", cat: "Frozen & Apps" },
+  // Desserts
+  { name: "Cannolis",                 emoji: "🍮", cat: "Desserts" },
+  { name: "Cannoli Cream",            emoji: "🍮", cat: "Desserts" },
+  { name: "Triple Chocolate Cake",    emoji: "🎂", cat: "Desserts" },
+  { name: "NY Style Cheesecake",      emoji: "🍰", cat: "Desserts" },
+  { name: "Tiramisu Cup",             emoji: "☕", cat: "Desserts" },
+  { name: "Chocolate Mousse Cup",     emoji: "🍫", cat: "Desserts" },
+  // Supplies
+  { name: "18\" Sub Bags",            emoji: "🛍️", cat: "Supplies" },
+  { name: "Case Bleach",              emoji: "🧴", cat: "Supplies" },
+  { name: "Paper Plates",             emoji: "🍽️", cat: "Supplies" },
+  { name: "Grill Cleaner",            emoji: "🧹", cat: "Supplies" },
+  { name: "Floor Cleaner",            emoji: "🧹", cat: "Supplies" },
+  { name: "Steel Sponge",             emoji: "🧽", cat: "Supplies" },
+  { name: "PC Red Gold Ketchup",      emoji: "🥫", cat: "Supplies" },
+  { name: "Jar Sliced Pickles",       emoji: "🫙", cat: "Supplies" },
+  // Wraps & Bread
+  { name: "Plain Wrap",               emoji: "🌯", cat: "Wraps & Bread" },
+  { name: "Whole Wheat Wraps",        emoji: "🌯", cat: "Wraps & Bread" },
+];
+
+const orders = {};
+let customItems = [];
+let nextId = 1;
+let activeCategory = "All";
+let searchQuery = "";
+
+function initOrders() {
+  ITEMS.forEach(i => { orders[i.name] = 0; });
+}
+
+function sid(name) { return name.replace(/[^a-zA-Z0-9]/g, "_"); }
+function esc(s) { return s.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+
+function getCategories() {
+  return ["All", ...new Set(ITEMS.map(i => i.cat))];
+}
+
+function renderCats() {
+  document.getElementById("catScroll").innerHTML = getCategories().map(c =>
+    `<div class="cat-pill${c === activeCategory ? " active" : ""}" onclick="setCategory('${c}')">${c}</div>`
+  ).join("");
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  renderCats();
+  renderItems();
+}
+
+function filterItems() {
+  searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+  renderItems();
+}
+
+function getVisible() {
+  return ITEMS.filter(i => {
+    const matchCat = activeCategory === "All" || i.cat === activeCategory;
+    const matchSearch = i.name.toLowerCase().includes(searchQuery);
+    return matchCat && matchSearch;
+  });
+}
+
+function renderItems() {
+  const visible = getVisible();
+  const list = document.getElementById("itemsList");
+
+  if (!visible.length) {
+    list.innerHTML = `<div class="no-results">No items found</div>`;
+    return;
+  }
+
+  let html = "";
+  if (activeCategory === "All" && !searchQuery) {
+    const byCat = {};
+    visible.forEach(i => { (byCat[i.cat] = byCat[i.cat]||[]).push(i); });
+    Object.entries(byCat).forEach(([cat, items]) => {
+      html += `<div class="section-label">${cat}</div>`;
+      items.forEach(i => html += itemCard(i));
+    });
+  } else {
+    visible.forEach(i => html += itemCard(i));
+  }
+  html += customSection();
+  list.innerHTML = html;
+}
+
+function itemCard(i) {
+  const qty = orders[i.name], active = qty > 0;
+  return `
+    <div class="item-card${active?" has-order":""}" id="card-${sid(i.name)}">
+      <div class="item-emoji">${i.emoji}</div>
+      <div class="item-info">
+        <div class="item-name">${i.name}</div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty('${i.name}',-1)">−</button>
+        <div class="qty-num" id="qty-${sid(i.name)}">${qty}</div>
+        <button class="qty-btn" onclick="changeQty('${i.name}',1)">+</button>
+      </div>
+    </div>`;
+}
+
+function customSection() {
+  const rows = customItems.map(c => `
+    <div class="custom-row${c.name.trim()&&c.qty>0?" filled":""}" id="crow-${c.id}">
+      <input class="custom-name-input" type="text" placeholder="Item name…"
+        value="${esc(c.name)}" oninput="updateCustomName(${c.id},this.value)">
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeCustomQty(${c.id},-1)">−</button>
+        <div class="qty-num" id="cqty-${c.id}">${c.qty}</div>
+        <button class="qty-btn" onclick="changeCustomQty(${c.id},1)">+</button>
+      </div>
+      <button class="custom-delete-btn" onclick="removeCustom(${c.id})">×</button>
+    </div>`).join("");
+  return `
+    <div class="section-label">Custom</div>
+    <div class="custom-section">
+      <div class="custom-section-header">
+        <span class="custom-section-title">Extra Items</span>
+        <button class="add-custom-btn" onclick="addCustom()">+ Add Line</button>
+      </div>
+      ${rows || `<div class="custom-empty">Tap + Add Line to add extras</div>`}
+    </div>`;
+}
+
+function changeQty(name, delta) {
+  orders[name] = Math.max(0, orders[name] + delta);
+  const el = document.getElementById(`qty-${sid(name)}`);
+  if (el) el.textContent = orders[name];
+  const card = document.getElementById(`card-${sid(name)}`);
+  if (card) card.classList.toggle("has-order", orders[name] > 0);
+  updateFooter();
+}
+
+function addCustom() {
+  const id = nextId++;
+  customItems.push({ id, name: "", qty: 0 });
+  const section = document.querySelector(".custom-section");
+  if (!section) { renderItems(); } else {
+    const empty = section.querySelector(".custom-empty");
+    if (empty) empty.remove();
+    const row = document.createElement("div");
+    row.innerHTML = `
+      <div class="custom-row" id="crow-${id}">
+        <input class="custom-name-input" type="text" placeholder="Item name…"
+          value="" oninput="updateCustomName(${id},this.value)">
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeCustomQty(${id},-1)">−</button>
+          <div class="qty-num" id="cqty-${id}">0</div>
+          <button class="qty-btn" onclick="changeCustomQty(${id},1)">+</button>
+        </div>
+        <button class="custom-delete-btn" onclick="removeCustom(${id})">×</button>
+      </div>`;
+    section.appendChild(row.firstElementChild);
+  }
+  setTimeout(() => {
+    const input = document.querySelector(`#crow-${id} .custom-name-input`);
+    if (input) input.focus();
+  }, 30);
+}
+
+function removeCustom(id) {
+  customItems = customItems.filter(c => c.id !== id);
+  const row = document.getElementById(`crow-${id}`);
+  if (row) row.remove();
+  const section = document.querySelector(".custom-section");
+  if (section && !section.querySelector(".custom-row")) {
+    const empty = document.createElement("div");
+    empty.className = "custom-empty";
+    empty.textContent = "Tap + Add Line to add extras";
+    section.appendChild(empty);
+  }
+  updateFooter();
+}
+
+function updateCustomName(id, val) {
+  const item = customItems.find(c => c.id === id);
+  if (!item) return;
+  item.name = val;
+  const row = document.getElementById(`crow-${id}`);
+  if (row) row.classList.toggle("filled", val.trim() !== "" && item.qty > 0);
+  updateFooter();
+}
+
+function changeCustomQty(id, delta) {
+  const item = customItems.find(c => c.id === id);
+  if (!item) return;
+  item.qty = Math.max(0, item.qty + delta);
+  const el = document.getElementById(`cqty-${id}`);
+  if (el) el.textContent = item.qty;
+  const row = document.getElementById(`crow-${id}`);
+  if (row) row.classList.toggle("filled", item.name.trim() !== "" && item.qty > 0);
+  updateFooter();
+}
+
+function orderedItems() { return ITEMS.filter(i => orders[i.name] > 0); }
+function orderedCustoms() { return customItems.filter(c => c.name.trim() && c.qty > 0); }
+
+function updateFooter() {
+  const total = orderedItems().length + orderedCustoms().length;
+  document.getElementById("cartCount").textContent = total;
+  const footer = document.getElementById("orderFooter");
+  if (total > 0) {
+    footer.classList.add("visible");
+    document.getElementById("footerItems").textContent = `${total} item${total!==1?"s":""} selected`;
+  } else {
+    footer.classList.remove("visible");
+  }
+}
+
+function openSheet() {
+  const items = orderedItems(), customs = orderedCustoms();
+  if (!items.length && !customs.length) { alert("No items in your order yet."); return; }
+  const date = new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+  document.getElementById("sheetDate").textContent = date.toUpperCase();
+  let html = items.map(i=>`
+    <div class="sheet-item">
+      <div class="sheet-item-name">${i.name}</div>
+      <div class="sheet-item-qty">${orders[i.name]}</div>
+    </div>`).join("");
+  html += customs.map(c=>`
+    <div class="sheet-item">
+      <div><div class="sheet-item-name">${esc(c.name)}</div><div class="sheet-item-badge">CUSTOM</div></div>
+      <div class="sheet-item-qty">${c.qty}</div>
+    </div>`).join("");
+  document.getElementById("sheetItems").innerHTML = html;
+  document.getElementById("sheetOverlay").classList.add("open");
+}
+
+function closeSheet() { document.getElementById("sheetOverlay").classList.remove("open"); }
+function closeSheetOutside(e) { if (e.target===document.getElementById("sheetOverlay")) closeSheet(); }
+
+function copyOrder() {
+  const items = orderedItems(), customs = orderedCustoms();
+  let text = "";
+  items.forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
+  customs.forEach(c => { text += `${c.qty} - ${c.name.trim()}\n`; });
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "✅ Copied!";
+    setTimeout(()=>btn.textContent="📋 Copy Order", 2000);
+  }).catch(()=>{ prompt("Copy your order:", text); });
+}
+
+function confirmClear() { document.getElementById("confirmOverlay").classList.add("open"); }
+function closeConfirm() { document.getElementById("confirmOverlay").classList.remove("open"); }
+function clearCart() {
+  ITEMS.forEach(i => { orders[i.name] = 0; });
+  customItems = []; nextId = 1;
+  closeConfirm(); closeSheet();
+  renderItems(); updateFooter();
+}
+
+document.addEventListener('touchmove', function(e) {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+let lastTap = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTap < 300) e.preventDefault();
+  lastTap = now;
+}, { passive: false });
+
+initOrders();
+renderCats();
+renderItems();
+</script>
+</body>
+</html>
