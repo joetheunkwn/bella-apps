@@ -63,6 +63,28 @@
     font-weight: 400;
   }
 
+  .home-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    color: white;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .home-btn:active { background: rgba(255,255,255,0.22); }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
   .cart-btn {
     position: relative;
     background: rgba(255,255,255,0.12);
@@ -246,32 +268,6 @@
     color: var(--ink);
   }
 
-  /* ON HAND INPUT */
-  .onhand-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-  }
-  .onhand-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-  }
-  .onhand-input {
-    width: 52px;
-    border: 1.5px solid var(--cream-dark);
-    border-radius: 6px;
-    padding: 3px 6px;
-    font-family: 'DM Mono', monospace;
-    font-size: 16px;
-    color: var(--ink);
-    background: var(--cream);
-    outline: none;
-    text-align: center;
-  }
-  .onhand-input:focus { border-color: var(--green-light); }
 
   /* FOOTER ORDER SUMMARY */
   .order-footer {
@@ -517,11 +513,14 @@
       Rooney
       <span>Produce Order</span>
     </div>
-    <button class="cart-btn" onclick="openSheet()">
-      <span class="cart-icon">🛒</span>
-      <span id="cartLabel">Order</span>
-      <span class="cart-count" id="cartCount">0</span>
-    </button>
+    <div class="header-actions">
+      <a href="index.html" class="home-btn">🏠</a>
+      <button class="cart-btn" onclick="openSheet()">
+        <span class="cart-icon">🛒</span>
+        <span id="cartLabel">Order</span>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
   </div>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
@@ -608,7 +607,7 @@ let searchQuery = "";
 
 function initOrders() {
   PRODUCE.forEach(p => {
-    orders[p.name] = { qty: 0, onHand: "" };
+    orders[p.name] = { qty: 0 };
   });
 }
 
@@ -688,13 +687,6 @@ function itemCard(p) {
       <div class="item-info">
         <div class="item-name">${p.name}</div>
         <div class="item-meta">${p.pack.toUpperCase()}${p.halfStep ? " · ½ INCREMENTS" : ""}</div>
-        <div class="onhand-wrap">
-          <span class="onhand-label">ON HAND:</span>
-          <input class="onhand-input" type="number" min="0" placeholder="—"
-            value="${o.onHand}"
-            onchange="setOnHand('${p.name}', this.value)"
-            onclick="event.stopPropagation()">
-        </div>
       </div>
       <div class="qty-control">
         <button class="qty-btn" onclick="changeQty('${p.name}', -1)">−</button>
@@ -720,9 +712,6 @@ function changeQty(name, delta) {
   updateFooter();
 }
 
-function setOnHand(name, val) {
-  orders[name].onHand = val;
-}
 
 function getOrderedItems() {
   return PRODUCE.filter(p => orders[p.name].qty > 0);
@@ -755,7 +744,7 @@ function openSheet() {
       <div class="sheet-item">
         <div>
           <div class="sheet-item-name">${p.name}</div>
-          <div class="sheet-item-detail">${p.pack.toUpperCase()}${o.onHand ? ` · ${o.onHand} on hand` : ""}</div>
+          <div class="sheet-item-detail">${p.pack.toUpperCase()}</div>
         </div>
         <div class="sheet-item-qty">× ${fmtQty(o.qty, p.halfStep)}</div>
       </div>`;
@@ -795,7 +784,7 @@ function closeConfirm() {
 }
 
 function clearCart() {
-  PRODUCE.forEach(p => { orders[p.name] = { qty: 0, onHand: "" }; });
+  PRODUCE.forEach(p => { orders[p.name] = { qty: 0 }; });
   closeConfirm();
   closeSheet();
   renderItems();

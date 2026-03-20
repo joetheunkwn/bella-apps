@@ -45,6 +45,9 @@
   .logo-sub { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
   .logo-name { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--navy); letter-spacing: 0.01em; }
   .logo-tag { font-family: 'Playfair Display', serif; font-style: italic; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .home-btn { background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 10px; color: var(--navy); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; text-decoration: none; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .home-btn:active { background: var(--cream-dark); }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
   .cart-btn { background: var(--navy); border: none; border-radius: 12px; color: white; padding: 8px 14px; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background 0.2s; }
   .cart-btn:active { background: var(--navy-light); }
   .cart-count { background: var(--red-italy); color: white; border-radius: 999px; font-size: 10px; font-weight: 500; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
@@ -144,10 +147,13 @@
       <div class="logo-name">Anacapri</div>
       <div class="logo-tag">Ristorante Italiano</div>
     </div>
-    <button class="cart-btn" onclick="openSheet()">
-      <span>🛒</span><span>Order</span>
-      <span class="cart-count" id="cartCount">0</span>
-    </button>
+    <div class="header-actions">
+      <a href="index.html" class="home-btn">🏠</a>
+      <button class="cart-btn" onclick="openSheet()">
+        <span>🛒</span><span>Order</span>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
   </div>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
