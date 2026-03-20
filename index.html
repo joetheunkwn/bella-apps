@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bella Apps</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #faf6ee;
+    --cream-dark: #ede5d5;
+    --ink: #1a1a14;
+    --muted: #7a7a6a;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  /* HEADER */
+  .page-header {
+    text-align: center;
+    padding: 48px 0 36px;
+  }
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .page-header p {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* CARDS */
+  .app-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .app-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--ink);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border: 1.5px solid transparent;
+    transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .app-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .app-card:hover {
+    border-color: var(--cream-dark);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  }
+
+  .app-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .app-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .app-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+  .app-desc {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .app-arrow {
+    font-size: 18px;
+    color: #ccc;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .app-card:hover .app-arrow {
+    transform: translateX(3px);
+    color: var(--muted);
+  }
+
+  /* INDIVIDUAL CARD COLORS */
+  .card-panettiere .app-icon { background: #f3e8da; }
+  .card-anacapri .app-icon { background: #e4edf7; }
+  .card-kohler .app-icon { background: #f5e0e0; }
+  .card-rooney .app-icon { background: #ddf0dd; }
+
+  .card-panettiere .app-name { color: #5c3d1e; }
+  .card-anacapri .app-name { color: #1a3a5c; }
+  .card-kohler .app-name { color: #8b1a1a; }
+  .card-rooney .app-name { color: #2d6a2d; }
+
+  /* FOOTER */
+  .page-footer {
+    text-align: center;
+    padding: 32px 0 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #ccc;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Bella Apps</h1>
+  <p>Daily Ordering</p>
+</div>
+
+<div class="app-grid">
+
+  <a href="il_panettiere.html" class="app-card card-panettiere">
+    <div class="app-icon">🥖</div>
+    <div class="app-info">
+      <div class="app-name">Il Panettiere</div>
+      <div class="app-desc">Bakery · Breads & Buns</div>
+    </div>
+    <div class="app-arrow">→</div>
+  </a>
+
+  <a href="anacapri.html" class="app-card card-anacapri">
+    <div class="app-icon">🍝</div>
+    <div class="app-info">
+      <div class="app-name">Anacapri</div>
+      <div class="app-desc">Ristorante · Full Supply</div>
+    </div>
+    <div class="app-arrow">→</div>
+  </a>
+
+  <a href="kohler_deli.html" class="app-card card-kohler">
+    <div class="app-icon">🥩</div>
+    <div class="app-info">
+      <div class="app-name">Kohler Deli</div>
+      <div class="app-desc">Deli · Meats & Cheese</div>
+    </div>
+    <div class="app-arrow">→</div>
+  </a>
+
+  <a href="rooney_produce.html" class="app-card card-rooney">
+    <div class="app-icon">🥬</div>
+    <div class="app-info">
+      <div class="app-name">Rooney Produce</div>
+      <div class="app-desc">Produce · Fruits & Vegetables</div>
+    </div>
+    <div class="app-arrow">→</div>
+  </a>
+
+</div>
+
+<div class="page-footer">BELLA APPS</div>
+
+</body>
+</html>
