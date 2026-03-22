@@ -118,12 +118,10 @@
   .btn-imessage:active { background: #1976D2; }
 
   /* DATE PICKER */
-  .date-pick-wrap { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-  .future-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; flex-shrink: 0; }
-  .date-input { border: 1.5px solid var(--cream-dark); border-radius: 7px; padding: 3px 8px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--brown); background: var(--cream); outline: none; -webkit-appearance: none; cursor: pointer; touch-action: manipulation; }
-  .date-input:focus { border-color: var(--active-border); }
-  .date-input.has-date { background: var(--brown); color: white; border-color: var(--brown); }
-  .date-input.has-date::-webkit-calendar-picker-indicator { filter: invert(1); }
+  .future-btn-wrap { position: relative; display: inline-block; margin-top: 6px; }
+  .future-order-btn { background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 7px; padding: 4px 10px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--brown); cursor: pointer; touch-action: manipulation; white-space: nowrap; display: block; }
+  .future-order-btn.has-date { background: var(--brown); color: white; border-color: var(--brown); }
+  .future-date-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; touch-action: manipulation; }
   .btn-clear { width: 100%; margin-top: 10px; background: transparent; border: 1.5px solid #e0c0bc; color: var(--danger); border-radius: 12px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
   .btn-clear:active { background: #fdf0ee; }
 
@@ -247,11 +245,9 @@ function itemCard(i) {
       ${i.quickPicks.map(v => `<button class="quick-btn" onclick="addQty('${i.name}',${v})">${v}</button>`).join("")}
     </div>` : "";
   const datePick = i.futureDate ? `
-    <div class="date-pick-wrap">
-      <span class="future-label">Future Order</span>
-      <input type="date" class="date-input${itemDates[i.name] ? ' has-date' : ''}" id="date-${sid(i.name)}"
-        value="${itemDates[i.name] || ''}"
-        onchange="setItemDate('${i.name}', this.value)">
+    <div class="future-btn-wrap">
+      <button class="future-order-btn${itemDates[i.name] ? ' has-date' : ''}" id="fbtn-${sid(i.name)}">${itemDates[i.name] ? new Date(itemDates[i.name]+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'Future Order'}</button>
+      <input type="date" class="future-date-input" value="${itemDates[i.name] || ''}" onchange="setItemDate('${i.name}', this.value)">
     </div>` : "";
   return `
     <div class="item-card${active?" has-order":""}" id="card-${sid(i.name)}">
@@ -334,8 +330,11 @@ function changeQty(name, delta) {
 
 function setItemDate(name, value) {
   itemDates[name] = value;
-  const input = document.getElementById(`date-${sid(name)}`);
-  if (input) input.classList.toggle('has-date', !!value);
+  const btn = document.getElementById(`fbtn-${sid(name)}`);
+  if (btn) {
+    btn.classList.toggle('has-date', !!value);
+    btn.textContent = value ? new Date(value + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Future Order';
+  }
 }
 
 function addCustom() {
