@@ -121,6 +121,8 @@
   .sheet-actions { display: flex; gap: 10px; margin-top: 22px; }
   .btn-secondary { flex: 1; border: 1.5px solid var(--cream-dark); background: white; color: var(--ink); border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
   .btn-copy { flex: 2; background: var(--navy); color: white; border: none; border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .btn-imessage { display: block; width: 100%; margin-top: 10px; background: #2196F3; color: white; border: none; border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; box-sizing: border-box; touch-action: manipulation; }
+  .btn-imessage:active { background: #1976D2; }
   .btn-clear { width: 100%; margin-top: 10px; background: transparent; border: 1.5px solid #e0c0bc; color: var(--danger); border-radius: 12px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
   .btn-clear:active { background: #fdf0ee; }
 
@@ -180,6 +182,7 @@
       <button class="btn-secondary" onclick="closeSheet()">← Back</button>
       <button class="btn-copy" id="copyBtn" onclick="copyOrder()">📋 Copy Order</button>
     </div>
+    <button class="btn-imessage" onclick="sendImessage()">💬 Send via iMessage</button>
     <button class="btn-clear" onclick="confirmClear()">🗑 Clear Order</button>
   </div>
 </div>
@@ -527,6 +530,16 @@ function copyOrder() {
   }).catch(()=>{ prompt("Copy your order:", text); });
 }
 
+function sendImessage() {
+  const items = orderedItems(), customs = orderedCustoms();
+  let text = "";
+  items.forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
+  customs.forEach(c => { text += `${c.qty} - ${c.name.trim()}\n`; });
+  text = text.trim();
+  navigator.clipboard.writeText(text).catch(()=>{});
+  window.location.href = `sms:&body=${encodeURIComponent(text)}`;
+}
+
 function confirmClear() { document.getElementById("confirmOverlay").classList.add("open"); }
 function closeConfirm() { document.getElementById("confirmOverlay").classList.remove("open"); }
 function clearCart() {
@@ -542,7 +555,7 @@ document.addEventListener('touchmove', function(e) {
 let lastTap = 0;
 document.addEventListener('touchend', function(e) {
   const now = Date.now();
-  if (now - lastTap < 300) e.preventDefault();
+  if (now - lastTap < 300 && !e.target.closest('button, input, a, label')) e.preventDefault();
   lastTap = now;
 }, { passive: false });
 

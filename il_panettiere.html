@@ -65,7 +65,7 @@
 
   /* QUICK PICK BUTTONS */
   .quick-btns { display: flex; gap: 5px; margin-top: 6px; }
-  .quick-btn { background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 7px; padding: 3px 10px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--brown); cursor: pointer; transition: background 0.12s, border-color 0.12s; -webkit-tap-highlight-color: transparent; }
+  .quick-btn { background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 7px; padding: 3px 10px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--brown); cursor: pointer; transition: background 0.12s, border-color 0.12s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   .quick-btn:active, .quick-btn.active { background: var(--brown); color: white; border-color: var(--brown); }
 
   /* QTY STEPPER */
@@ -114,8 +114,15 @@
   .sheet-actions { display: flex; gap: 10px; margin-top: 22px; }
   .btn-secondary { flex: 1; border: 1.5px solid var(--cream-dark); background: white; color: var(--ink); border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
   .btn-copy { flex: 2; background: var(--brown); color: white; border: none; border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
-  .btn-imessage { display: block; width: 100%; margin-top: 10px; background: #2196F3; color: white; border: none; border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; box-sizing: border-box; }
+  .btn-imessage { display: block; width: 100%; margin-top: 10px; background: #2196F3; color: white; border: none; border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; box-sizing: border-box; touch-action: manipulation; }
   .btn-imessage:active { background: #1976D2; }
+
+  /* DATE PICKER */
+  .date-pick-wrap { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+  .date-input { border: 1.5px solid var(--cream-dark); border-radius: 7px; padding: 3px 8px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--brown); background: var(--cream); outline: none; -webkit-appearance: none; cursor: pointer; touch-action: manipulation; }
+  .date-input:focus { border-color: var(--active-border); }
+  .date-input.has-date { background: var(--brown); color: white; border-color: var(--brown); }
+  .date-input.has-date::-webkit-calendar-picker-indicator { filter: invert(1); }
   .btn-clear { width: 100%; margin-top: 10px; background: transparent; border: 1.5px solid #e0c0bc; color: var(--danger); border-radius: 12px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
   .btn-clear:active { background: #fdf0ee; }
 
@@ -196,12 +203,13 @@ const ITEMS = [
   { name: "Small Semo Hero",        emoji: "🥖", cat: "Breads & Buns" },
   { name: "Sliced White Bread",     emoji: "🍞", cat: "Special Order" },
   { name: "Sliced Rye Bread",       emoji: "🍞", cat: "Special Order" },
-  { name: "Brick Oven Party Rolls", emoji: "🫓", cat: "Special Order", quickPicks: [6, 12] },
-  { name: "6 Foot Seedless",        emoji: "🥖", cat: "Party Subs" },
-  { name: "3 Foot Seedless",        emoji: "🥖", cat: "Party Subs" },
+  { name: "Brick Oven Party Rolls", emoji: "🫓", cat: "Special Order", quickPicks: [6, 12], futureDate: true },
+  { name: "6 Foot Seedless",        emoji: "🥖", cat: "Party Subs", futureDate: true },
+  { name: "3 Foot Seedless",        emoji: "🥖", cat: "Party Subs", futureDate: true },
 ];
 
 const orders = {};
+const itemDates = {};
 let customItems = [];
 let nextId = 1;
 let searchQuery = "";
@@ -237,12 +245,20 @@ function itemCard(i) {
     <div class="quick-btns">
       ${i.quickPicks.map(v => `<button class="quick-btn" onclick="addQty('${i.name}',${v})">${v}</button>`).join("")}
     </div>` : "";
+  const datePick = i.futureDate ? `
+    <div class="date-pick-wrap">
+      <span style="font-size:12px">📅</span>
+      <input type="date" class="date-input${itemDates[i.name] ? ' has-date' : ''}" id="date-${sid(i.name)}"
+        value="${itemDates[i.name] || ''}"
+        onchange="setItemDate('${i.name}', this.value)">
+    </div>` : "";
   return `
     <div class="item-card${active?" has-order":""}" id="card-${sid(i.name)}">
       <div class="item-emoji">${i.emoji}</div>
       <div class="item-info">
         <div class="item-name">${i.name}</div>
         ${quickBtns}
+        ${datePick}
       </div>
       <div class="qty-control">
         <button class="qty-btn" onclick="changeQty('${i.name}',-1)">−</button>
@@ -313,6 +329,12 @@ function changeQty(name, delta) {
     card.classList.toggle("has-order", orders[name] > 0);
   }
   updateFooter();
+}
+
+function setItemDate(name, value) {
+  itemDates[name] = value;
+  const input = document.getElementById(`date-${sid(name)}`);
+  if (input) input.classList.toggle('has-date', !!value);
 }
 
 function addCustom() {
@@ -396,11 +418,15 @@ function openSheet() {
   if (!items.length && !customs.length) { alert("No items in your order yet."); return; }
   const date = new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
   document.getElementById("sheetDate").textContent = date.toUpperCase();
-  let html = items.map(i=>`
-    <div class="sheet-item">
-      <div class="sheet-item-name">${i.name}</div>
+  let html = items.map(i => {
+    const dateBadge = i.futureDate && itemDates[i.name]
+      ? `<div class="sheet-item-badge">📅 ${new Date(itemDates[i.name]+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>`
+      : (i.futureDate ? `<div class="sheet-item-badge">📅 tomorrow</div>` : '');
+    return `<div class="sheet-item">
+      <div><div class="sheet-item-name">${i.name}</div>${dateBadge}</div>
       <div class="sheet-item-qty">${orders[i.name]}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
   html += customs.map(c=>`
     <div class="sheet-item">
       <div><div class="sheet-item-name">${esc(c.name)}</div><div class="sheet-item-badge">CUSTOM</div></div>
@@ -413,11 +439,32 @@ function openSheet() {
 function closeSheet() { document.getElementById("sheetOverlay").classList.remove("open"); }
 function closeSheetOutside(e) { if (e.target===document.getElementById("sheetOverlay")) closeSheet(); }
 
-function copyOrder() {
+function buildOrderText() {
   const items = orderedItems(), customs = orderedCustoms();
-  let text = "";
-  items.forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
+  const tmr = new Date();
+  tmr.setDate(tmr.getDate() + 1);
+  const tmrStr = tmr.toISOString().slice(0, 10);
+
+  const tomorrowItems = items.filter(i => !i.futureDate || !itemDates[i.name] || itemDates[i.name] === tmrStr);
+  const futureItems   = items.filter(i => i.futureDate && itemDates[i.name] && itemDates[i.name] !== tmrStr);
+
+  let text = "Hello, for tomorrow\n";
+  tomorrowItems.forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
   customs.forEach(c => { text += `${c.qty} - ${c.name.trim()}\n`; });
+
+  const byDate = {};
+  futureItems.forEach(i => { (byDate[itemDates[i.name]] = byDate[itemDates[i.name]] || []).push(i); });
+  Object.keys(byDate).sort().forEach(date => {
+    const formatted = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    text += `\nand for ${formatted}\n`;
+    byDate[date].forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
+  });
+
+  return text.trim();
+}
+
+function copyOrder() {
+  const text = buildOrderText();
   navigator.clipboard.writeText(text).then(()=>{
     const btn = document.getElementById("copyBtn");
     btn.textContent = "✅ Copied!";
@@ -426,11 +473,7 @@ function copyOrder() {
 }
 
 function sendImessage() {
-  const items = orderedItems(), customs = orderedCustoms();
-  let text = "";
-  items.forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
-  customs.forEach(c => { text += `${c.qty} - ${c.name.trim()}\n`; });
-  text = text.trim();
+  const text = buildOrderText();
   navigator.clipboard.writeText(text).catch(()=>{});
   window.location.href = `sms:&body=${encodeURIComponent(text)}`;
 }
@@ -453,7 +496,7 @@ document.addEventListener('touchmove', function(e) {
 let lastTap = 0;
 document.addEventListener('touchend', function(e) {
   const now = Date.now();
-  if (now - lastTap < 300) e.preventDefault();
+  if (now - lastTap < 300 && !e.target.closest('button, input, a, label')) e.preventDefault();
   lastTap = now;
 }, { passive: false });
 </script>
