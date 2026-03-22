@@ -118,7 +118,8 @@
   .btn-imessage:active { background: #1976D2; }
 
   /* DATE PICKER */
-  .date-pick-wrap { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+  .date-pick-wrap { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .future-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; flex-shrink: 0; }
   .date-input { border: 1.5px solid var(--cream-dark); border-radius: 7px; padding: 3px 8px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--brown); background: var(--cream); outline: none; -webkit-appearance: none; cursor: pointer; touch-action: manipulation; }
   .date-input:focus { border-color: var(--active-border); }
   .date-input.has-date { background: var(--brown); color: white; border-color: var(--brown); }
@@ -247,7 +248,7 @@ function itemCard(i) {
     </div>` : "";
   const datePick = i.futureDate ? `
     <div class="date-pick-wrap">
-      <span style="font-size:12px">📅</span>
+      <span class="future-label">Future Order</span>
       <input type="date" class="date-input${itemDates[i.name] ? ' has-date' : ''}" id="date-${sid(i.name)}"
         value="${itemDates[i.name] || ''}"
         onchange="setItemDate('${i.name}', this.value)">
@@ -481,7 +482,7 @@ function sendImessage() {
 function confirmClear() { document.getElementById("confirmOverlay").classList.add("open"); }
 function closeConfirm() { document.getElementById("confirmOverlay").classList.remove("open"); }
 function clearCart() {
-  ITEMS.forEach(i => { orders[i.name] = 0; });
+  ITEMS.forEach(i => { orders[i.name] = 0; delete itemDates[i.name]; });
   customItems = []; nextId = 1;
   closeConfirm(); closeSheet();
   renderItems(); updateFooter();
