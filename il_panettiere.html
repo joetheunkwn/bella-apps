@@ -232,7 +232,7 @@ function itemCard(i) {
   const qty = orders[i.name], active = qty > 0;
   const quickBtns = i.quickPicks ? `
     <div class="quick-btns">
-      ${i.quickPicks.map(v => `<button class="quick-btn${qty===v?" active":""}" onclick="setQty('${i.name}',${v})">${v}</button>`).join("")}
+      ${i.quickPicks.map(v => `<button class="quick-btn" onclick="addQty('${i.name}',${v})">${v}</button>`).join("")}
     </div>` : "";
   return `
     <div class="item-card${active?" has-order":""}" id="card-${sid(i.name)}">
@@ -286,9 +286,17 @@ function setQty(name, val) {
   const card = document.getElementById(`card-${sid(name)}`);
   if (card) {
     card.classList.toggle("has-order", val > 0);
-    card.querySelectorAll(".quick-btn").forEach(btn => {
-      btn.classList.toggle("active", parseInt(btn.textContent) === val);
-    });
+  }
+  updateFooter();
+}
+
+function addQty(name, val) {
+  orders[name] = (orders[name] || 0) + val;
+  const el = document.getElementById(`qty-${sid(name)}`);
+  if (el) el.textContent = orders[name];
+  const card = document.getElementById(`card-${sid(name)}`);
+  if (card) {
+    card.classList.toggle("has-order", orders[name] > 0);
   }
   updateFooter();
 }
@@ -300,9 +308,6 @@ function changeQty(name, delta) {
   const card = document.getElementById(`card-${sid(name)}`);
   if (card) {
     card.classList.toggle("has-order", orders[name] > 0);
-    card.querySelectorAll(".quick-btn").forEach(btn => {
-      btn.classList.toggle("active", parseInt(btn.textContent) === orders[name]);
-    });
   }
   updateFooter();
 }
