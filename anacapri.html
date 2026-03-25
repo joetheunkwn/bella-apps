@@ -138,6 +138,8 @@
   .confirm-cancel { flex: 1; border: 1.5px solid var(--cream-dark); background: white; color: var(--ink); border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
   .confirm-ok { flex: 1; background: var(--danger); color: white; border: none; border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
   .no-results { text-align: center; padding: 40px 20px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 0.06em; }
+  .last-order-btn { background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 10px; color: var(--navy); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+  .last-order-btn:active { background: var(--cream-dark); }
 </style>
 </head>
 <body>
@@ -151,6 +153,7 @@
     </div>
     <div class="header-actions">
       <a href="index.html" class="home-btn">🏠</a>
+      <button class="last-order-btn" id="lastOrderBtn" onclick="openLastOrder()" style="display:none" title="Last Order">🕐</button>
       <button class="cart-btn" onclick="openSheet()">
         <span>🛒</span><span>Order</span>
         <span class="cart-count" id="cartCount">0</span>
@@ -195,6 +198,19 @@
     <div class="confirm-actions">
       <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
       <button class="confirm-ok" onclick="clearCart()">Yes, clear it</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="lastSheetOverlay" onclick="closeLastSheetOutside(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Last Order</div>
+    <div class="sheet-date" id="lastSheetDate"></div>
+    <div id="lastSheetItems"></div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" onclick="closeLastSheet()">← Back</button>
+      <button class="btn-copy" onclick="reloadLastOrder()">↩ Reload Order</button>
     </div>
   </div>
 </div>
@@ -312,8 +328,91 @@ let nextId = 1;
 let activeCategory = "All";
 let searchQuery = "";
 
+const SK_ORDERS = 'anacapri_orders';
+const SK_CUSTOM = 'anacapri_custom';
+const SK_LAST   = 'anacapri_lastOrder';
+
 function initOrders() {
   ITEMS.forEach(i => { orders[i.name] = 0; });
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(SK_ORDERS, JSON.stringify(orders));
+    localStorage.setItem(SK_CUSTOM, JSON.stringify(customItems));
+  } catch(e) {}
+}
+
+function loadState() {
+  initOrders();
+  try {
+    const savedOrders = localStorage.getItem(SK_ORDERS);
+    if (savedOrders) {
+      const parsed = JSON.parse(savedOrders);
+      Object.keys(parsed).forEach(k => { if (k in orders) orders[k] = parsed[k] || 0; });
+    }
+    const savedCustom = localStorage.getItem(SK_CUSTOM);
+    if (savedCustom) {
+      customItems = JSON.parse(savedCustom);
+      if (customItems.length) nextId = Math.max(...customItems.map(c => c.id)) + 1;
+    }
+  } catch(e) {}
+}
+
+function saveLastOrder() {
+  const items = orderedItems(), customs = orderedCustoms();
+  if (!items.length && !customs.length) return;
+  const snapshot = {
+    date: new Date().toLocaleDateString("en-US", {weekday:"long",month:"long",day:"numeric",year:"numeric"}),
+    items: items.map(i => ({ name: i.name, qty: orders[i.name] })),
+    customs: customs.map(c => ({ name: c.name, qty: c.qty }))
+  };
+  try { localStorage.setItem(SK_LAST, JSON.stringify(snapshot)); } catch(e) {}
+  updateLastOrderBtn();
+}
+
+function updateLastOrderBtn() {
+  const btn = document.getElementById('lastOrderBtn');
+  if (btn) btn.style.display = localStorage.getItem(SK_LAST) ? '' : 'none';
+}
+
+function openLastOrder() {
+  try {
+    const snapshot = JSON.parse(localStorage.getItem(SK_LAST));
+    if (!snapshot) return;
+    document.getElementById('lastSheetDate').textContent = snapshot.date.toUpperCase();
+    let html = snapshot.items.map(i => `
+      <div class="sheet-item">
+        <div class="sheet-item-name">${esc(i.name)}</div>
+        <div class="sheet-item-qty">${i.qty}</div>
+      </div>`).join("");
+    html += (snapshot.customs || []).map(c => `
+      <div class="sheet-item">
+        <div><div class="sheet-item-name">${esc(c.name)}</div><div class="sheet-item-badge">CUSTOM</div></div>
+        <div class="sheet-item-qty">${c.qty}</div>
+      </div>`).join("");
+    document.getElementById('lastSheetItems').innerHTML = html;
+    document.getElementById('lastSheetOverlay').classList.add('open');
+  } catch(e) {}
+}
+
+function closeLastSheet() { document.getElementById('lastSheetOverlay').classList.remove('open'); }
+function closeLastSheetOutside(e) { if (e.target === document.getElementById('lastSheetOverlay')) closeLastSheet(); }
+
+function reloadLastOrder() {
+  try {
+    const snapshot = JSON.parse(localStorage.getItem(SK_LAST));
+    if (!snapshot) return;
+    initOrders();
+    customItems = []; nextId = 1;
+    snapshot.items.forEach(i => { if (i.name in orders) orders[i.name] = i.qty; });
+    snapshot.customs.forEach((c, idx) => {
+      customItems.push({ id: nextId++, name: c.name, qty: c.qty });
+    });
+    saveState();
+    closeLastSheet();
+    renderItems(); updateFooter();
+  } catch(e) {}
 }
 
 function sid(name) { return name.replace(/[^a-zA-Z0-9]/g, "_"); }
@@ -381,9 +480,9 @@ function itemCard(i) {
         <div class="item-name">${i.name}</div>
       </div>
       <div class="qty-control">
-        <button class="qty-btn" onclick="changeQty('${i.name}',-1)">−</button>
+        <button class="qty-btn" onclick="changeQty('${esc(i.name)}',-1)">−</button>
         <div class="qty-num" id="qty-${sid(i.name)}">${qty}</div>
-        <button class="qty-btn" onclick="changeQty('${i.name}',1)">+</button>
+        <button class="qty-btn" onclick="changeQty('${esc(i.name)}',1)">+</button>
       </div>
     </div>`;
 }
@@ -418,6 +517,7 @@ function changeQty(name, delta) {
   const card = document.getElementById(`card-${sid(name)}`);
   if (card) card.classList.toggle("has-order", orders[name] > 0);
   updateFooter();
+  saveState();
 }
 
 function addCustom() {
@@ -441,6 +541,7 @@ function addCustom() {
       </div>`;
     section.appendChild(row.firstElementChild);
   }
+  saveState();
   setTimeout(() => {
     const input = document.querySelector(`#crow-${id} .custom-name-input`);
     if (input) input.focus();
@@ -459,6 +560,7 @@ function removeCustom(id) {
     section.appendChild(empty);
   }
   updateFooter();
+  saveState();
 }
 
 function updateCustomName(id, val) {
@@ -468,6 +570,7 @@ function updateCustomName(id, val) {
   const row = document.getElementById(`crow-${id}`);
   if (row) row.classList.toggle("filled", val.trim() !== "" && item.qty > 0);
   updateFooter();
+  saveState();
 }
 
 function changeCustomQty(id, delta) {
@@ -479,6 +582,7 @@ function changeCustomQty(id, delta) {
   const row = document.getElementById(`crow-${id}`);
   if (row) row.classList.toggle("filled", item.name.trim() !== "" && item.qty > 0);
   updateFooter();
+  saveState();
 }
 
 function orderedItems() { return ITEMS.filter(i => orders[i.name] > 0); }
@@ -523,6 +627,7 @@ function copyOrder() {
   let text = "";
   items.forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
   customs.forEach(c => { text += `${c.qty} - ${c.name.trim()}\n`; });
+  saveLastOrder();
   navigator.clipboard.writeText(text).then(()=>{
     const btn = document.getElementById("copyBtn");
     btn.textContent = "✅ Copied!";
@@ -536,6 +641,7 @@ function sendImessage() {
   items.forEach(i => { text += `${orders[i.name]} - ${i.name}\n`; });
   customs.forEach(c => { text += `${c.qty} - ${c.name.trim()}\n`; });
   text = text.trim();
+  saveLastOrder();
   navigator.clipboard.writeText(text).catch(()=>{});
   window.location.href = `sms:&body=${encodeURIComponent(text)}`;
 }
@@ -545,6 +651,7 @@ function closeConfirm() { document.getElementById("confirmOverlay").classList.re
 function clearCart() {
   ITEMS.forEach(i => { orders[i.name] = 0; });
   customItems = []; nextId = 1;
+  try { localStorage.removeItem(SK_ORDERS); localStorage.removeItem(SK_CUSTOM); } catch(e) {}
   closeConfirm(); closeSheet();
   renderItems(); updateFooter();
 }
@@ -559,9 +666,11 @@ document.addEventListener('touchend', function(e) {
   lastTap = now;
 }, { passive: false });
 
-initOrders();
+loadState();
+updateLastOrderBtn();
 renderCats();
 renderItems();
+updateFooter();
 </script>
 </body>
 </html>
