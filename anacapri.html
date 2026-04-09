@@ -492,9 +492,9 @@ function itemCard(i) {
         <div class="item-name">${i.name}</div>
       </div>
       <div class="qty-control">
-        <button class="qty-btn" onclick="changeQty('${esc(i.name)}',-1)">−</button>
+        <button class="qty-btn" onclick="changeQty(${esc(JSON.stringify(i.name))},-1)">−</button>
         <div class="qty-num" id="qty-${sid(i.name)}">${qty}</div>
-        <button class="qty-btn" onclick="changeQty('${esc(i.name)}',1)">+</button>
+        <button class="qty-btn" onclick="changeQty(${esc(JSON.stringify(i.name))},1)">+</button>
       </div>
     </div>`;
 }
