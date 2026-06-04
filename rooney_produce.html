@@ -601,13 +601,23 @@ const PRODUCE = [
   { name: "Lemon", pack: "Case", emoji: "🍋", cat: "Fruit" },
 ];
 
-const orders = {};   // name -> { qty, onHand }
+const orders = {};   // name -> { qty }
 let activeCategory = "All";
 let searchQuery = "";
 
+const SK = 'rooney_orders';
+
+function saveOrders() {
+  const data = {};
+  PRODUCE.forEach(p => { if (orders[p.name] && orders[p.name].qty) data[p.name] = orders[p.name].qty; });
+  localStorage.setItem(SK, JSON.stringify(data));
+}
+
 function initOrders() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(SK) || '{}'); } catch(e) {}
   PRODUCE.forEach(p => {
-    orders[p.name] = { qty: 0 };
+    orders[p.name] = { qty: saved[p.name] || 0 };
   });
 }
 
@@ -710,6 +720,7 @@ function changeQty(name, delta) {
   const card = document.getElementById(`card-${safeId(name)}`);
   if (card) card.classList.toggle("has-order", o.qty > 0);
   updateFooter();
+  saveOrders();
 }
 
 
@@ -785,6 +796,7 @@ function closeConfirm() {
 
 function clearCart() {
   PRODUCE.forEach(p => { orders[p.name] = { qty: 0 }; });
+  localStorage.removeItem(SK);
   closeConfirm();
   closeSheet();
   renderItems();
