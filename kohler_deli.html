@@ -65,8 +65,9 @@
   /* ON HAND */
   .onhand-wrap { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
   .onhand-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
-  .onhand-input { width: 52px; border: 1.5px solid var(--cream-dark); border-radius: 6px; padding: 3px 6px; font-family: 'DM Mono', monospace; font-size: 16px; color: var(--ink); background: var(--cream); outline: none; text-align: center; }
+  .onhand-input { width: 52px; border: 1.5px solid var(--cream-dark); border-radius: 6px; padding: 3px 6px; font-family: 'DM Mono', monospace; font-size: 16px; color: var(--ink); background: var(--cream); outline: none; text-align: center; touch-action: none; cursor: ns-resize; user-select: none; -webkit-user-select: none; }
   .onhand-input:focus { border-color: var(--active-border); }
+  .onhand-input.dialing { border-color: var(--active-border); background: #fff; }
 
   /* QTY STEPPER */
   .qty-control { display: flex; align-items: center; background: var(--cream); border-radius: 10px; overflow: hidden; border: 1.5px solid var(--cream-dark); flex-shrink: 0; }
@@ -259,6 +260,9 @@ function meatCard(m) {
             value="${o.onHand}"
             onchange="setOnHand('${m.name}',this.value)"
             onwheel="scrollOnHand('${m.name}',this,event)"
+            ontouchstart="dialStart('${m.name}',this,event)"
+            ontouchmove="dialMove('${m.name}',this,event)"
+            ontouchend="dialEnd(this,event)"
             onclick="event.stopPropagation()">
         </div>
       </div>
@@ -322,6 +326,32 @@ function scrollOnHand(name, input, e) {
   const newVal = Math.max(0, current + (e.deltaY < 0 ? 1 : -1));
   orders[name].onHand = String(newVal);
   input.value = newVal;
+}
+
+let _dialName = null, _dialInput = null, _dialStartY = 0, _dialStartVal = 0;
+
+function dialStart(name, input, e) {
+  e.preventDefault();
+  _dialName = name;
+  _dialInput = input;
+  _dialStartY = e.touches[0].clientY;
+  _dialStartVal = parseInt(orders[name].onHand) || 0;
+  input.classList.add("dialing");
+}
+
+function dialMove(name, input, e) {
+  e.preventDefault();
+  if (_dialName !== name) return;
+  const dy = _dialStartY - e.touches[0].clientY;
+  const newVal = Math.max(0, _dialStartVal + Math.round(dy / 10));
+  orders[name].onHand = String(newVal);
+  input.value = newVal;
+}
+
+function dialEnd(input, e) {
+  e.preventDefault();
+  input.classList.remove("dialing");
+  _dialName = null;
 }
 
 function addCustom() {
