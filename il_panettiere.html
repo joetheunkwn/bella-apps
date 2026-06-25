@@ -198,8 +198,8 @@
 
 <script>
 const ITEMS = [
-  { name: "Brioche Bun",           emoji: "🍔", cat: "Breads & Buns", quickPicks: [6, 12] },
-  { name: "Small Semo Hero",        emoji: "🥖", cat: "Breads & Buns" },
+  { name: "Brioche Bun",           emoji: "🍔", cat: "Breads & Buns", quickPicks: [6, 12], standingOrder: "Standing: 12 daily" },
+  { name: "Small Semo Hero",        emoji: "🥖", cat: "Breads & Buns", standingOrder: "Standing: 1 daily" },
   { name: "Sliced White Bread",         emoji: "🍞", cat: "Special Order" },
   { name: "Sliced Rye Bread",           emoji: "🍞", cat: "Special Order" },
   { name: "20lb Box of Bread Crumb",    emoji: "📦", cat: "Special Order" },
@@ -255,6 +255,7 @@ function itemCard(i) {
       <div class="item-emoji">${i.emoji}</div>
       <div class="item-info">
         <div class="item-name">${i.name}</div>
+        ${i.standingOrder ? `<div class="item-meta">${i.standingOrder}</div>` : ""}
         ${quickBtns}
         ${datePick}
       </div>
