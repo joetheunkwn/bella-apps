@@ -65,15 +65,10 @@
   /* ON HAND */
   .onhand-wrap { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
   .onhand-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
-  .onhand-drum { width: 52px; height: 32px; position: relative; border: 1.5px solid var(--cream-dark); border-radius: 6px; background: var(--cream); overflow: hidden; cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; }
-  .onhand-drum.dialing { border-color: var(--active-border); background: #fff; }
-  .onhand-drum-val { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: var(--ink); position: absolute; width: 100%; text-align: center; pointer-events: none; }
-  .onhand-drum-val.muted { color: var(--muted); font-size: 13px; }
-  @keyframes drumSlideInUp   { from { transform: translateY(110%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes drumSlideInDown { from { transform: translateY(-110%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes drumSlideOutUp   { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-110%); opacity: 0; } }
-  @keyframes drumSlideOutDown { from { transform: translateY(0); opacity: 1; } to { transform: translateY(110%); opacity: 0; } }
-  @keyframes drumPop { 0%,100% { transform: scale(1); } 45% { transform: scale(1.25); } }
+  .onhand-control { display: flex; align-items: center; background: var(--cream); border-radius: 8px; overflow: hidden; border: 1.5px solid var(--cream-dark); }
+  .onhand-btn { width: 28px; height: 28px; border: none; background: transparent; font-size: 18px; color: var(--red); cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .onhand-btn:active { background: var(--cream-dark); }
+  .onhand-num { min-width: 28px; text-align: center; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
 
   /* QTY STEPPER */
   .qty-control { display: flex; align-items: center; background: var(--cream); border-radius: 10px; overflow: hidden; border: 1.5px solid var(--cream-dark); flex-shrink: 0; }
@@ -262,13 +257,10 @@ function meatCard(m) {
         ${m.halfStep?`<div class="item-meta">INCREMENTS OF ½</div>`:""}
         <div class="onhand-wrap">
           <span class="onhand-label">ON HAND:</span>
-          <div class="onhand-drum" id="drum-${sid(m.name)}"
-            ontouchstart="dialStart('${m.name}',this,event)"
-            ontouchmove="dialMove('${m.name}',this,event)"
-            ontouchend="dialEnd('${m.name}',this,event)"
-            onwheel="scrollOnHand('${m.name}',this,event)"
-            onclick="drumTap('${m.name}',this)">
-            <span class="onhand-drum-val${o.onHand==='' ? ' muted' : ''}" id="drumval-${sid(m.name)}">${o.onHand !== '' ? o.onHand : '—'}</span>
+          <div class="onhand-control">
+            <button class="onhand-btn" onclick="changeOnHand('${m.name}',-1)">−</button>
+            <div class="onhand-num" id="onhand-${sid(m.name)}">${o.onHand !== '' ? o.onHand : '0'}</div>
+            <button class="onhand-btn" onclick="changeOnHand('${m.name}',1)">+</button>
           </div>
         </div>
       </div>
@@ -322,105 +314,12 @@ function changeSteps(name, delta) {
   updateFooter();
 }
 
-function setOnHand(name, val) {
-  orders[name].onHand = val;
-  updateDrum(name, val, 0);
-}
-
-function updateDrum(name, val, dir) {
-  const drum = document.getElementById(`drum-${sid(name)}`);
-  if (!drum) return;
-  const isEmpty = val === '' || val === null || val === undefined;
-  const display = isEmpty ? '—' : String(val);
-  const isMuted = isEmpty;
-
-  if (dir === 0) {
-    const span = document.getElementById(`drumval-${sid(name)}`);
-    if (span) { span.textContent = display; span.className = 'onhand-drum-val' + (isMuted ? ' muted' : ''); }
-    return;
-  }
-
-  const old = drum.querySelector('.onhand-drum-val');
-  if (old) {
-    old.id = '';
-    old.style.animation = `${dir > 0 ? 'drumSlideOutUp' : 'drumSlideOutDown'} 0.12s ease-in forwards`;
-    setTimeout(() => old.parentNode && old.remove(), 130);
-  }
-  const next = document.createElement('span');
-  next.id = `drumval-${sid(name)}`;
-  next.className = 'onhand-drum-val' + (isMuted ? ' muted' : '');
-  next.textContent = display;
-  next.style.animation = `${dir > 0 ? 'drumSlideInUp' : 'drumSlideInDown'} 0.12s ease-out forwards`;
-  drum.appendChild(next);
-}
-
-function scrollOnHand(name, drum, e) {
-  e.preventDefault();
-  const dir = e.deltaY < 0 ? 1 : -1;
-  const newVal = Math.max(0, (parseInt(orders[name].onHand) || 0) + dir);
+function changeOnHand(name, delta) {
+  const current = parseInt(orders[name].onHand) || 0;
+  const newVal = Math.max(0, current + delta);
   orders[name].onHand = String(newVal);
-  updateDrum(name, String(newVal), dir);
-}
-
-let _dialName = null, _dialStartY = 0, _dialStartVal = 0, _dialLastVal = 0, _dialMoved = false;
-
-function dialStart(name, drum, e) {
-  _dialName = name;
-  _dialStartY = e.touches[0].clientY;
-  _dialStartVal = parseInt(orders[name].onHand) || 0;
-  _dialLastVal = _dialStartVal;
-  _dialMoved = false;
-}
-
-function dialMove(name, drum, e) {
-  const dy = _dialStartY - e.touches[0].clientY;
-  if (Math.abs(dy) > 4) {
-    e.preventDefault();
-    _dialMoved = true;
-    drum.classList.add('dialing');
-    const newVal = Math.max(0, _dialStartVal + Math.round(dy / 10));
-    if (newVal !== _dialLastVal) {
-      const dir = newVal > _dialLastVal ? 1 : -1;
-      _dialLastVal = newVal;
-      orders[name].onHand = String(newVal);
-      const span = document.getElementById(`drumval-${sid(name)}`);
-      if (span) {
-        span.textContent = newVal;
-        span.className = 'onhand-drum-val';
-        span.style.animation = 'none';
-        requestAnimationFrame(() => { span.style.animation = 'drumPop 0.1s ease-out'; });
-      }
-    }
-  }
-}
-
-function dialEnd(name, drum, e) {
-  drum.classList.remove('dialing');
-  _dialName = null;
-}
-
-function drumTap(name, drum) {
-  if (_dialMoved) { _dialMoved = false; return; }
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.inputMode = 'numeric';
-  input.value = orders[name].onHand;
-  Object.assign(input.style, {
-    position: 'absolute', inset: '0', width: '100%', height: '100%',
-    border: 'none', background: '#fff', outline: 'none',
-    fontFamily: "'DM Mono', monospace", fontSize: '15px', fontWeight: '500',
-    textAlign: 'center', borderRadius: '4px', color: 'var(--ink)', zIndex: '10'
-  });
-  drum.appendChild(input);
-  setTimeout(() => { input.focus(); input.select(); }, 10);
-  const finish = () => {
-    const val = input.value.trim();
-    orders[name].onHand = val;
-    updateDrum(name, val, 0);
-    if (input.parentNode) input.remove();
-  };
-  input.addEventListener('blur', finish);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+  const el = document.getElementById(`onhand-${sid(name)}`);
+  if (el) el.textContent = newVal;
 }
 
 function addCustom() {
