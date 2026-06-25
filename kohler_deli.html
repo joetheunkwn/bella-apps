@@ -258,6 +258,7 @@ function meatCard(m) {
           <input class="onhand-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—"
             value="${o.onHand}"
             onchange="setOnHand('${m.name}',this.value)"
+            onwheel="scrollOnHand('${m.name}',this,event)"
             onclick="event.stopPropagation()">
         </div>
       </div>
@@ -313,6 +314,14 @@ function changeSteps(name, delta) {
 
 function setOnHand(name, val) {
   orders[name].onHand = val;
+}
+
+function scrollOnHand(name, input, e) {
+  e.preventDefault();
+  const current = parseInt(orders[name].onHand) || 0;
+  const newVal = Math.max(0, current + (e.deltaY < 0 ? 1 : -1));
+  orders[name].onHand = String(newVal);
+  input.value = newVal;
 }
 
 function addCustom() {
