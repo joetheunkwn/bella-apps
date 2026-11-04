@@ -773,7 +773,7 @@ function copyOrder() {
   let text = "";
   items.forEach(p => {
     const o = orders[p.name];
-    text += `${fmtQty(o.qty, p.halfStep)} - ${p.name}\n`;
+    text += `${fmtQty(o.qty, p.halfStep)} - ${p.name} (${p.pack})\n`;
   });
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById("copyBtn");
